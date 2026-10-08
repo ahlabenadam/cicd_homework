@@ -54,8 +54,15 @@ _SAFE_PICTURE_SCHEMES = ("http://", "https://", "//")
 
 
 _log = logging.getLogger(__name__)
-# Suppress Flask/werkzeug's "development server" banner — expected for local dev.
-logging.getLogger("werkzeug").setLevel(logging.ERROR)
+
+
+class _SuppressDevServerWarning(logging.Filter):
+    """Drop only the 'This is a development server' warning — keep all other werkzeug output."""
+    def filter(self, record: logging.LogRecord) -> bool:
+        return "development server" not in record.getMessage()
+
+
+logging.getLogger("werkzeug").addFilter(_SuppressDevServerWarning())
 
 
 def create_app() -> Flask:
