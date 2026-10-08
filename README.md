@@ -63,11 +63,6 @@ Open `.env` and set `APP_SECRET` to any long random string:
 APP_SECRET=paste-a-random-string-here
 ```
 
-Generate one:
-```bash
-python3 -c "import secrets; print(secrets.token_hex(32))"
-```
-
 ### Step 2 — Run
 
 ```bash
