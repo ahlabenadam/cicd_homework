@@ -95,7 +95,13 @@ def create_app() -> Flask:
     def index():
         if "email" in session:
             return redirect(url_for("profile"))
-        return render_template("index.html")
+        return render_template(
+            "index.html",
+            name=os.environ.get("MOCK_NAME", "Local User"),
+            email=os.environ.get("MOCK_EMAIL", "local@localhost"),
+            app_secret_set=bool(app_secret),
+            port=PORT,
+        )
 
     @app.route("/login")
     def login():
