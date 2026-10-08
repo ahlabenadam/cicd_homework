@@ -37,7 +37,7 @@ test-one: install
 
 # ── App ───────────────────────────────────────────────────────────────────────
 
-# Start the Flask app (default — no OAuth, no Google credentials needed).
+# Start the Flask app (default).
 # Customize the identity with MOCK_NAME, MOCK_EMAIL, MOCK_PICTURE in .env.
 run: install
 	python3 app/main.py

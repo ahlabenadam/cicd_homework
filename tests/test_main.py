@@ -1,7 +1,7 @@
 """
-Tests for the Flask web app (app/main.py) — no-OAuth mode.
+Tests for the Flask web app (app/main.py).
 
-All tests use Flask's built-in test client — no browser, no Google account needed.
+All tests use Flask's built-in test client — no browser needed.
 The app signs users in automatically using a configurable mock identity (MOCK_NAME,
 MOCK_EMAIL, MOCK_PICTURE env vars), so tests simply call GET /login to set up a session.
 """
@@ -107,7 +107,7 @@ def test_home_redirects_to_profile_when_logged_in(logged_in_client):
 # ── Login (GET /login) ────────────────────────────────────────────────────────
 
 def test_login_redirects_to_profile(client):
-    """GET /login sets session and redirects directly to /profile (no OAuth)."""
+    """GET /login sets the session and redirects directly to /profile."""
     resp = client.get("/login")
     assert resp.status_code == 302
     assert "/profile" in resp.headers["Location"]
@@ -271,7 +271,7 @@ def test_login_overwrites_existing_session(client, monkeypatch):
 # ── Removed routes return 404 ──────────────────────────────────────────────────
 
 def test_callback_route_does_not_exist(client):
-    """GET /callback must return 404 — OAuth callback route was removed."""
+    """GET /callback must return 404 — this route does not exist."""
     resp = client.get("/callback?code=fake&state=fake")
     assert resp.status_code == 404
 

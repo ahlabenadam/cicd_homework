@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-CI/CD Homework App — Flask web app (local / no-OAuth mode).
+CI/CD Homework App — Flask web app.
 
 Users are signed in automatically using a configurable mock identity.
-No Google account or OAuth credentials are required.
+No external accounts or credentials are required.
 
 Run locally:
     python app/main.py          # or: make run
@@ -90,7 +90,7 @@ def create_app() -> Flask:
 
     @app.route("/login")
     def login():
-        """Sign in with a mock identity from env vars (no OAuth required)."""
+        """Sign in with a mock identity from env vars."""
         session["name"] = os.environ.get("MOCK_NAME", "Local User")
         session["email"] = os.environ.get("MOCK_EMAIL", "local@localhost")
         # Sanitize picture URL — only allow safe schemes to prevent javascript: / data: URIs

@@ -1,9 +1,7 @@
-# CI/CD Homework — No-OAuth Mode
+# CI/CD Homework
 
 A Python web app that shows a profile page with a configurable identity.
 It demonstrates a full CI/CD pipeline with GitHub Actions, secret handling, and artifact upload.
-
-No Google account or OAuth credentials required.
 
 ---
 
@@ -134,8 +132,6 @@ Installs deps, runs all tests (log → `logs/test.log`), packages `app/` into `d
 | `make clean` | Delete `output/`, `logs/`, `dist/`, `__pycache__/` |
 | `make help` | Show all available commands |
 
-> To sign in as a different user, open a private/incognito browser window (or clear cookies for `localhost`).
-
 ---
 
 ## GitHub Actions CI
@@ -187,7 +183,6 @@ Then update `MOCK_NAME` / `MOCK_EMAIL` in `.env` and restart with `make`.
 |----------|-----------|---------|-------------|
 | `APP_SECRET` | ✅ Yes | — | Signs Flask session cookies — keep private |
 | `PORT` | No | `5000` | Port the app listens on |
-| `DEBUG` | No | off | Set `true` to enable Flask debugger (local dev only — never in production) |
 | `MOCK_NAME` | No | `Local User` | Name shown on profile page |
 | `MOCK_EMAIL` | No | `local@localhost` | Email shown on profile page |
-| `MOCK_PICTURE` | No | *(none)* | Avatar URL (`http://` or `https://` only — other schemes are blocked) |
+| `MOCK_PICTURE` | No | *(none)* | Avatar URL — leave blank for no avatar |

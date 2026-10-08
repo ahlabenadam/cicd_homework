@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - oauth
       - web
       - skip_oauth
   pull_request:
