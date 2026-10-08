@@ -1,0 +1,62 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-and-test:
+    name: Build, Test & Package
+    runs-on: ubuntu-latest
+
+    steps:
+      # ── 1. Checkout ────────────────────────────────────────────────────────
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # ── 2. Set up Python ──────────────────────────────────────────────────
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      # ── 3. Run Bash setup script ──────────────────────────────────────────
+      #       APP_SECRET is injected from a GitHub Actions secret so it is
+      #       never printed in plain text in the workflow log.
+      - name: Run setup, test, and package
+        env:
+          APP_SECRET: ${{ secrets.APP_SECRET }}
+        run: bash scripts/setup.sh
+
+      # ── 4. Upload artifacts ───────────────────────────────────────────────
+      - name: Upload app artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-tarball
+          path: dist/app.tar.gz
+          if-no-files-found: warn
+
+      - name: Upload test log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-log
+          path: logs/test.log
+          if-no-files-found: warn
+
+      # ── 5. Report result ──────────────────────────────────────────────────
+      - name: Report status
+        if: always()
+        run: |
+          if [[ "${{ job.status }}" == "success" ]]; then
+            echo "✅ CI passed — all steps completed successfully."
+          else
+            echo "❌ CI failed — review the logs and uploaded artifacts above."
+            exit 1
+          fi
