@@ -18,7 +18,7 @@ import pytest
 sys.path.insert(0, str(pathlib.Path(__file__).parent.parent))
 
 import app.main as main_module
-from app.main import create_app
+from app.main import create_app, PORT, REDIRECT_URI
 
 # ── Fixtures ──────────────────────────────────────────────────────────────────
 
@@ -332,6 +332,38 @@ def test_callback_token_fetch_error_flashes_and_redirects(client):
 
     assert resp.status_code == 302
     assert "/" in resp.headers["Location"]
+
+
+# ── Port / REDIRECT_URI consistency ───────────────────────────────────────────
+
+def test_redirect_uri_derived_from_port_constant():
+    """
+    Regression: REDIRECT_URI must be derived from PORT, not hardcoded separately.
+    If someone changes PORT (or the PORT env var) the redirect URI must update too.
+    """
+    assert f"localhost:{PORT}" in REDIRECT_URI, (
+        f"REDIRECT_URI ({REDIRECT_URI!r}) does not use PORT constant ({PORT}). "
+        "They have drifted — change PORT or REDIRECT_URI to stay in sync."
+    )
+    assert REDIRECT_URI.endswith("/callback")
+
+
+def test_login_sends_correct_redirect_uri_to_google(client):
+    """
+    /login must pass REDIRECT_URI (derived from PORT) to the Google OAuth flow.
+    Catches the bug where port in run() and port in REDIRECT_URI were different.
+    """
+    with patch("app.main.Flow") as MockFlow:
+        mock_flow = MagicMock()
+        mock_flow.authorization_url.return_value = ("https://accounts.google.com/o/oauth2/auth?fake=1", "state123")
+        MockFlow.from_client_config.return_value = mock_flow
+        client.get("/login")
+
+    _, kwargs = MockFlow.from_client_config.call_args
+    assert kwargs.get("redirect_uri") == REDIRECT_URI, (
+        f"Flow was created with redirect_uri={kwargs.get('redirect_uri')!r} "
+        f"but REDIRECT_URI is {REDIRECT_URI!r}. Port mismatch!"
+    )
 
 
 def test_callback_consumes_state_and_verifier_from_session(client):

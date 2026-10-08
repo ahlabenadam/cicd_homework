@@ -53,7 +53,10 @@ SCOPES = [
     "https://www.googleapis.com/auth/userinfo.email",
     "https://www.googleapis.com/auth/userinfo.profile",
 ]
-REDIRECT_URI = "http://localhost:5000/callback"
+# Single source of truth for the port — overridable via PORT env var.
+# REDIRECT_URI is derived from it so the two can never drift apart.
+PORT = int(os.environ.get("PORT", "5000"))
+REDIRECT_URI = f"http://localhost:{PORT}/callback"
 
 OUTPUT_DIR = _REPO_ROOT / "output"
 
@@ -210,4 +213,4 @@ def create_app() -> Flask:
 
 if __name__ == "__main__":
     flask_app = create_app()
-    flask_app.run(debug=True, port=5000)
+    flask_app.run(debug=True, port=PORT)
