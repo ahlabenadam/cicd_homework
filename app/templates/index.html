@@ -10,30 +10,17 @@
     p     { color: #555; margin-bottom: 2rem; }
     a.btn {
       display: inline-block; padding: 0.7rem 1.6rem; border-radius: 6px;
-      background: #4285f4; color: #fff; text-decoration: none; font-weight: 600;
+      background: #555; color: #fff; text-decoration: none; font-weight: 600;
       font-size: 1rem; letter-spacing: .02em;
     }
-    a.btn:hover { background: #3367d6; }
-    a.btn.local { background: #555; }
-    a.btn.local:hover { background: #333; }
-    .flash  { margin-top: 1.5rem; color: #c00; font-size: 0.9rem; }
-    .notice { margin-top: 1.5rem; padding: 0.6rem 1rem; background: #fff3cd;
-              border: 1px solid #ffc107; border-radius: 6px; font-size: 0.85rem; color: #856404; }
+    a.btn:hover { background: #333; }
+    .flash { margin-top: 1.5rem; color: #c00; font-size: 0.9rem; }
   </style>
 </head>
 <body>
   <h1>CI/CD Homework App</h1>
-  {% if skip_oauth %}
-  <p>Running in <strong>local mode</strong> — Google sign-in is disabled.</p>
-  <a class="btn local" href="/login">Continue without sign-in</a>
-  <div class="notice">
-    ⚠ <strong>Local mode is active.</strong>
-    Authentication is disabled. Do not use in production.
-  </div>
-  {% else %}
-  <p>Sign in with your Google account to view your profile.</p>
-  <a class="btn" href="/login">Sign in with Google</a>
-  {% endif %}
+  <p>Click below to enter and view your profile.</p>
+  <a class="btn" href="/login">Enter app</a>
   {% for msg in get_flashed_messages() %}
   <p class="flash">{{ msg }}</p>
   {% endfor %}
