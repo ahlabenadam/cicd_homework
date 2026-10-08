@@ -100,7 +100,7 @@ MOCK_EMAIL=ada@example.com
 ## Step 3A — Install & Run (Quick Mode)
 
 ```bash
-make run-skip
+make run
 ```
 
 Open **[http://localhost:5000](http://localhost:5000)** and click **Continue without sign-in**.
@@ -158,10 +158,10 @@ Generate a random `APP_SECRET`:
 python3 -c "import secrets; print(secrets.token_hex(32))"
 ```
 
-## Step 4B — Install & Run (Full Mode)
+## Step 4B — Install & Run (Advanced Mode)
 
 ```bash
-make run
+make run-oauth
 ```
 
 Or without make:
@@ -215,8 +215,8 @@ This installs deps, runs all tests (saves log to `logs/test.log`), and packages 
 | `make test` | Run all unit tests |
 | `make test-list` | List all test names (usable with `K=`) |
 | `make test-one K=<name>` | Run one test by name |
-| `make run-skip` | Start app without OAuth — no Google credentials needed (Simple mode, ⚠ local dev only) |
-| `make run` | Start the Flask app with real Google sign-in (Advanced mode) |
+| `make run` | Start app without OAuth — no Google credentials needed (Simple mode, ⚠ local dev only) |
+| `make run-oauth` | Start the Flask app with real Google sign-in (Advanced mode) |
 | `make setup` | Full CI pipeline: install → test → package |
 | `make reauth` | Delete `.token_cache.json` (force Google sign-in again) |
 | `make clean` | Delete `output/`, `logs/`, `dist/`, `__pycache__/` |
@@ -270,7 +270,7 @@ Your `.env` file is missing or `APP_SECRET` is not set. Check that `.env` exists
 ### `EnvironmentError: GOOGLE_CLIENT_SECRET is required`
 You are running in Advanced mode but `GOOGLE_CLIENT_SECRET` is not set. Either:
 - Add `GOOGLE_CLIENT_SECRET=...` to your `.env` (see Step 3B), or
-- Switch to Simple mode: add `SKIP_OAUTH=true` to `.env` and use `make run-skip`
+- Switch to Simple mode: add `SKIP_OAUTH=true` to `.env` and use `make run`
 
 ### `Error 400: redirect_uri_mismatch`
 The redirect URI in Google Cloud Console does not match the app.
@@ -292,8 +292,8 @@ make reauth
 
 ### Port 5000 is already in use
 ```bash
-PORT=8080 make run-skip  # Simple mode
-PORT=8080 make run       # Advanced mode
+PORT=8080 make run        # Simple mode
+PORT=8080 make run-oauth  # Advanced mode
 ```
 
 ---

@@ -1,4 +1,4 @@
-.PHONY: install uninstall test test-one test-list run run-skip setup reauth clean help
+.PHONY: install uninstall test test-one test-list run run-oauth setup reauth clean help
 
 # ── Base ──────────────────────────────────────────────────────────────────────
 
@@ -35,15 +35,15 @@ test-one: install
 
 # ── App ───────────────────────────────────────────────────────────────────────
 
-# Start the Flask web app at http://localhost:5000
-run: install
-	python3 app/main.py
-
-# Start the app with Google OAuth disabled (no GOOGLE_CLIENT_SECRET needed).
-# ⚠ Authentication is fully disabled in this mode — local dev only.
+# Start the app without Google OAuth (default — no credentials needed).
+# ⚠ Authentication is disabled — local dev only.
 # Customize the mock identity with MOCK_NAME, MOCK_EMAIL, MOCK_PICTURE env vars.
-run-skip: install
+run: install
 	SKIP_OAUTH=true python3 app/main.py
+
+# Start the app with real Google OAuth (advanced — requires GOOGLE_CLIENT_SECRET in .env).
+run-oauth: install
+	python3 app/main.py
 
 # Full CI-equivalent: install → test → package artifact
 setup: install
@@ -70,8 +70,8 @@ help:
 	@echo "  test       Run all unit tests        [depends on: install]"
 	@echo "  test-list  List all test names        [depends on: install]"
 	@echo "  test-one   Run one test by name       [depends on: install]  e.g. make test-one K=test_login"
-	@echo "  run        Start Flask app            [depends on: install]"
-	@echo "  run-skip   Start app with SKIP_OAUTH=true (no Google credentials needed) [depends on: install]"
+	@echo "  run        Start app (no OAuth, no Google credentials needed) [depends on: install]"
+	@echo "  run-oauth  Start app with real Google sign-in (advanced)      [depends on: install]"
 	@echo "  setup      Full CI pipeline           [depends on: install]"
 	@echo "  reauth     Delete .token_cache.json (force Google sign-in)"
 	@echo "  clean      Remove output/, logs/, dist/, __pycache__/"
