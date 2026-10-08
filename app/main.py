@@ -89,21 +89,33 @@ def create_app() -> Flask:
     app_secret = os.environ.get("APP_SECRET", "")
     client_secret = os.environ.get("GOOGLE_CLIENT_SECRET", "")
 
+    # Detect missing .env file so first-time users get an actionable hint.
+    _env_file = _REPO_ROOT / ".env"
+    _env_missing = not _env_file.exists()
+    _env_hint = (
+        "\n\n  *** Looks like you haven't created a .env file yet. ***\n"
+        "  Run:  cp .env.example .env\n"
+        "  Then edit .env and fill in the required values.\n"
+        if _env_missing else ""
+    )
+
     if not app_secret:
         raise EnvironmentError(
-            "APP_SECRET is required but not set.\n"
-            "  Local runs : add APP_SECRET=<any-long-string> to your .env file.\n"
-            "  CI         : add APP_SECRET under Settings → Secrets and variables → Actions."
+            "APP_SECRET is required but not set."
+            f"{_env_hint}"
+            "\n  Local runs : add APP_SECRET=<any-long-string> to your .env file."
+            "\n  CI         : add APP_SECRET under Settings → Secrets and variables → Actions."
         )
 
     # GOOGLE_CLIENT_SECRET is only required when actually using OAuth.
     if not SKIP_OAUTH and not client_secret:
         raise EnvironmentError(
-            "GOOGLE_CLIENT_SECRET is required but not set.\n"
-            "  Local runs : add GOOGLE_CLIENT_SECRET=<your-secret> to your .env file.\n"
-            "  CI         : add GOOGLE_CLIENT_SECRET under Settings → Secrets and variables → Actions.\n"
-            "  Get it from: https://console.cloud.google.com/apis/credentials\n"
-            "  Tip        : set SKIP_OAUTH=true in .env to run without Google credentials."
+            "GOOGLE_CLIENT_SECRET is required but not set."
+            f"{_env_hint}"
+            "\n  Local runs : add GOOGLE_CLIENT_SECRET=<your-secret> to your .env file."
+            "\n  CI         : add GOOGLE_CLIENT_SECRET under Settings → Secrets and variables → Actions."
+            "\n  Get it from: https://console.cloud.google.com/apis/credentials"
+            "\n  Tip        : set SKIP_OAUTH=true in .env to run without Google credentials."
         )
 
     if SKIP_OAUTH:
