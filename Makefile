@@ -1,5 +1,7 @@
 .PHONY: install uninstall test test-one test-list run run-oauth setup reauth clean help
 
+.DEFAULT_GOAL := run
+
 # ── Base ──────────────────────────────────────────────────────────────────────
 
 # Install dependencies (required by most targets).
