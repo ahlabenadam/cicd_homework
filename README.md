@@ -1,84 +1,119 @@
 # CI/CD Homework
 
-A minimal Python app with a full GitHub Actions CI/CD pipeline, demonstrating:
+A Python web app with a full GitHub Actions CI/CD pipeline, demonstrating:
 
-- A simple Python script with file output
-- A Bash setup/test/package script
-- GitHub Actions workflow with artifact upload and secret handling
+- Flask web app with Google OAuth 2.0 (Authorization Code Flow)
+- Bash setup/test/package script
+- GitHub Actions workflow with secret handling and artifact upload
 
 ## Project Structure
 
 ```
 cicd_homework/
 ├── app/
-│   └── main.py              # Python app
+│   ├── main.py              # Flask web app
+│   └── templates/
+│       ├── index.html       # Home page — Sign in with Google
+│       └── profile.html     # Profile card shown after login
 ├── scripts/
 │   └── setup.sh             # Bash: install deps, run tests, package
 ├── tests/
-│   └── test_main.py         # pytest unit tests
+│   └── test_main.py         # pytest tests (Flask test client, no browser needed)
+├── .env.example             # Template for required environment variables
 ├── .github/
 │   └── workflows/
 │       └── ci.yml           # GitHub Actions CI workflow
 └── requirements.txt
 ```
 
-## Running Locally
+## Quick Start (Local)
 
-### Prerequisites
+### 1. Prerequisites
 
 - Python 3.12+
-- bash
+- A Google Cloud project with an OAuth 2.0 Web client configured
 
-### 1. Install dependencies
+### 2. Create a Google OAuth Client
+
+1. Go to [console.cloud.google.com/apis/credentials](https://console.cloud.google.com/apis/credentials)
+2. Click **Create Credentials → OAuth Client ID**
+3. Application type: **Web application**
+4. Add `http://localhost:5000/callback` to **Authorized redirect URIs**
+5. Copy the **Client Secret** (the Client ID is already in `app/main.py`)
+
+### 3. Set up environment variables
+
+```bash
+cp .env.example .env
+# Edit .env and fill in your GOOGLE_CLIENT_SECRET and APP_SECRET
+```
+
+Generate a random `APP_SECRET`:
+```bash
+python3 -c "import secrets; print(secrets.token_hex(32))"
+```
+
+### 4. Install dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### 2. Run the app
+### 5. Run the app
 
 ```bash
 python app/main.py
 ```
 
-Output is written to `output/result.txt`.
+Open [http://localhost:5000](http://localhost:5000) in your browser and click **Sign in with Google**.
 
-### 3. Run the full setup script (install + test + package)
+After sign-in, your profile is shown and `output/result.txt` is written.
 
-```bash
-bash scripts/setup.sh
-```
-
-This will:
-1. Install dependencies via pip
-2. Smoke-test the app
-3. Run pytest and save a log to `logs/test.log`
-4. Package `app/` into `dist/app.tar.gz`
-
-### 4. Run tests only
+### 6. Run tests (no browser needed)
 
 ```bash
 pytest tests/ -v
 ```
 
+Tests use Flask's test client and mock sessions — no real Google OAuth required.
+
+### 7. Run the full setup script (install + test + package)
+
+```bash
+bash scripts/setup.sh
+```
+
+This installs deps, runs pytest (log → `logs/test.log`), and packages `app/` into `dist/app.tar.gz`.
+
 ## GitHub Actions CI
 
 The workflow (`.github/workflows/ci.yml`) triggers on:
-- Push to `main`
+- Push to `main`, `oauth`, or `web` branches
 - Pull requests targeting `main`
 
 Steps:
 1. Checkout code
 2. Set up Python 3.12
-3. Run `scripts/setup.sh`
-4. Upload `dist/app.tar.gz` and `logs/test.log` as artifacts
-5. Report success or failure
+3. **Verify required secrets** (fail fast if `APP_SECRET` or `GOOGLE_CLIENT_SECRET` missing)
+4. Run `scripts/setup.sh` (install, test, package)
+5. Upload `dist/app.tar.gz` and `logs/test.log` as artifacts
+6. Report success or failure
 
-## Secret Handling (Bonus)
+## GitHub Secrets Required
 
-The workflow reads `APP_SECRET` from a GitHub Actions secret and passes it as an environment variable to the setup script and app. The app masks the secret value in its log output.
+Add these under **Settings → Secrets and variables → Actions → New repository secret**:
 
-To add the secret:
-1. Go to **Settings → Secrets and variables → Actions** in the repository
-2. Click **New repository secret**
-3. Name: `APP_SECRET`, Value: *(your secret value)*
+| Secret | Description |
+|--------|-------------|
+| `APP_SECRET` | Flask session signing key — any long random string |
+| `GOOGLE_CLIENT_SECRET` | From your Google Cloud OAuth client |
+
+> `GOOGLE_CLIENT_ID` is committed directly in `app/main.py` — it is not sensitive.
+
+## Notes on the OAuth Model
+
+- **GOOGLE_CLIENT_ID** identifies the registered app — committed to the repo, safe to share
+- **GOOGLE_CLIENT_SECRET** proves you own the app — keep it private
+- **APP_SECRET** signs Flask session cookies — keep it private
+- End users sign in with *their own* Google account; they need no credentials
+- Only the person *running the server* needs `.env` configured

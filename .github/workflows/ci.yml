@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - oauth
+      - web
   pull_request:
     branches:
       - main
@@ -27,12 +28,15 @@ jobs:
           cache: "pip"
 
       # ── 3. Verify required secrets are configured ─────────────────────────
+      #       Fail fast before wasting time on install/test if secrets missing.
       - name: Verify required secrets
         env:
           APP_SECRET: ${{ secrets.APP_SECRET }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
         run: |
           missing=()
-          [[ -z "${APP_SECRET}" ]] && missing+=("APP_SECRET")
+          [[ -z "${APP_SECRET}" ]]            && missing+=("APP_SECRET")
+          [[ -z "${GOOGLE_CLIENT_SECRET}" ]]  && missing+=("GOOGLE_CLIENT_SECRET")
           if [[ ${#missing[@]} -gt 0 ]]; then
             echo "ERROR: Missing required GitHub secrets: ${missing[*]}"
             echo "Add them under: Settings → Secrets and variables → Actions → New repository secret"
@@ -41,14 +45,12 @@ jobs:
           echo "All required secrets are present."
 
       # ── 4. Run Bash setup script ──────────────────────────────────────────
-      #       Secrets are injected from GitHub Actions secrets so they are
-      #       never printed in plain text in the workflow log.
-      #       OAuth Device Flow is automatically skipped because GitHub
-      #       Actions sets CI=true in the environment.
+      #       Tests use Flask test client — no browser or live Google needed.
+      #       APP_SECRET and GOOGLE_CLIENT_SECRET are injected from the vault.
+      #       GOOGLE_CLIENT_ID is committed in app/main.py (not sensitive).
       - name: Run setup, test, and package
         env:
           APP_SECRET: ${{ secrets.APP_SECRET }}
-          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
           GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
         run: bash scripts/setup.sh
 
