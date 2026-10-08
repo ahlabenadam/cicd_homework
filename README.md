@@ -105,7 +105,7 @@ make test-one K=test_profile_shows_name   # run one test by name
 Runs the same steps as GitHub Actions:
 
 ```bash
-make setup
+make ci
 ```
 
 Installs deps, runs all tests (log → `logs/test.log`), packages `app/` into `dist/app.tar.gz`.
@@ -123,7 +123,7 @@ Installs deps, runs all tests (log → `logs/test.log`), packages `app/` into `d
 | `make test` | Run all unit tests |
 | `make test-list` | List all test names (usable with `K=`) |
 | `make test-one K=<name>` | Run one test by name |
-| `make setup` | Full CI pipeline: install → test → package |
+| `make ci` | Run full CI pipeline locally: install → test → package |
 | `make clean` | Delete `output/`, `logs/`, `dist/`, `__pycache__/` |
 | `make help` | Show all available commands |
 

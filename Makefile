@@ -1,4 +1,4 @@
-.PHONY: install uninstall test test-one test-list run setup clean help
+.PHONY: install uninstall test test-one test-list run ci clean help
 
 .DEFAULT_GOAL := run
 
@@ -42,8 +42,8 @@ test-one: install
 run: install
 	python3 app/main.py
 
-# Full CI-equivalent: install → test → package artifact
-setup: install
+# Run the full CI pipeline locally: install → test → package artifact
+ci: install
 	bash scripts/setup.sh
 
 # ── Maintenance ───────────────────────────────────────────────────────────────
@@ -64,7 +64,7 @@ help:
 	@echo "  test-list  List all test names        [depends on: install]"
 	@echo "  test-one   Run one test by name       [depends on: install]  e.g. make test-one K=test_login"
 	@echo "  run        Start Flask app at http://localhost:5000 [depends on: install]  (default)"
-	@echo "  setup      Full CI pipeline           [depends on: install]"
+	@echo "  ci         Run full CI pipeline locally [depends on: install]"
 	@echo "  clean      Remove output/, logs/, dist/, __pycache__/"
 	@echo ""
 	@echo "  Tip: to sign in as a different user, open a private/incognito browser window."
