@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CI/CD Homework App</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 480px; margin: 80px auto; padding: 0 1rem; text-align: center; color: #222; }
+    h1   { font-size: 1.6rem; margin-bottom: 0.4rem; }
+    p    { color: #555; margin-bottom: 2rem; }
+    a.btn {
+      display: inline-block; padding: 0.7rem 1.6rem; border-radius: 6px;
+      background: #4285f4; color: #fff; text-decoration: none; font-weight: 600;
+      font-size: 1rem; letter-spacing: .02em;
+    }
+    a.btn:hover { background: #3367d6; }
+    .flash { margin-top: 1.5rem; color: #c00; font-size: 0.9rem; }
+  </style>
+</head>
+<body>
+  <h1>CI/CD Homework App</h1>
+  <p>Sign in with your Google account to view your profile.</p>
+  <a class="btn" href="/login">Sign in with Google</a>
+  {% for msg in get_flashed_messages() %}
+  <p class="flash">{{ msg }}</p>
+  {% endfor %}
+</body>
+</html>
