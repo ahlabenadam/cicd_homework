@@ -104,6 +104,7 @@ make run-skip
 ```
 
 Open **[http://localhost:5000](http://localhost:5000)** and click **Continue without sign-in**.
+(5000 is the default port — override it by adding `PORT=<number>` to your `.env`)
 
 > Jump to **[Step 5 — Run Tests](#step-5--run-tests)** when you are ready.
 
@@ -130,6 +131,7 @@ You only need a **free** Google account — no credit card required.
    ```
    http://localhost:5000/callback
    ```
+   (5000 is the default — if you set a different `PORT` in `.env`, use that number here instead)
 8. Click **Create**
 9. A popup shows your credentials — copy the **Client Secret**
 
@@ -168,12 +170,7 @@ python3 app/main.py
 ```
 
 Open **[http://localhost:5000](http://localhost:5000)** and click **Sign in with Google**.
-
-**Custom port** — if port 5000 is busy:
-```bash
-PORT=8080 make run
-```
-Then open `http://localhost:8080`. The redirect URI updates automatically — no other changes needed.
+(5000 is the default port — override it by adding `PORT=<number>` to your `.env`)
 
 > ⚠️ If you change `PORT`, also update the **Authorized redirect URI** in Google Cloud Console
 > to `http://localhost:<PORT>/callback`.
@@ -278,6 +275,7 @@ You are running in Advanced mode but `GOOGLE_CLIENT_SECRET` is not set. Either:
 ### `Error 400: redirect_uri_mismatch`
 The redirect URI in Google Cloud Console does not match the app.
 Make sure you added `http://localhost:5000/callback` exactly (no trailing slash) in Step 2B.
+If you set a custom `PORT` in `.env`, the URI must use that port number instead of 5000.
 
 ### `Error 400: invalid_request` or `oauth_test sent an invalid request`
 Your Google OAuth client is set to the wrong type (e.g. "TV and Limited Input").
