@@ -142,12 +142,59 @@ Then open `http://localhost:8080`. The redirect URI updates automatically — no
 
 ---
 
+## Step 4b — Skip OAuth (Advanced)
+
+Don't have Google credentials yet, or just want to test the app quickly?
+You can bypass Google sign-in entirely with one env var.
+
+> ⚠ **Warning:** This disables all authentication. Anyone can "sign in" with no password.
+> **Never use `SKIP_OAUTH=true` on a public server or in production.**
+
+```bash
+make run-skip
+```
+
+Or manually:
+```bash
+SKIP_OAUTH=true python3 app/main.py
+```
+
+In this mode:
+- **`GOOGLE_CLIENT_SECRET` is not required** — you can skip Step 1 and 2 entirely
+- The "Sign in with Google" button becomes "Continue without sign-in"
+- A yellow warning banner appears on the home and profile pages
+- You are signed in as a mock user — customize with env vars:
+
+```bash
+SKIP_OAUTH=true MOCK_NAME="Ada Lovelace" MOCK_EMAIL="ada@example.com" make run-skip
+```
+
+Or add to your `.env`:
+```bash
+SKIP_OAUTH=true
+MOCK_NAME=Ada Lovelace
+MOCK_EMAIL=ada@example.com
+```
+
+### Using SKIP_OAUTH in GitHub Actions CI
+
+Set `SKIP_OAUTH` as a **Repository Variable** (not a secret — it's not sensitive):
+**Settings → Secrets and variables → Actions → Variables → New repository variable**
+
+| Variable | Value |
+|----------|-------|
+| `SKIP_OAUTH` | `true` |
+
+When `SKIP_OAUTH=true` is set, CI will no longer require `GOOGLE_CLIENT_SECRET` to pass the secret verification step.
+
+---
+
 ## Step 5 — Run Tests
 
 Tests use Flask's built-in test client — **no browser, no real Google account needed**.
 
 ```bash
-make test               # run all 29 tests
+make test               # run all tests
 make test-list          # list all test names
 make test-one K=test_login_redirects_to_google   # run one test by name
 ```
@@ -177,10 +224,11 @@ This installs deps, runs all tests (saves log to `logs/test.log`), and packages 
 |---------|-------------|
 | `make install` | Install Python dependencies |
 | `make uninstall` | Uninstall all dependencies from `requirements.txt` |
-| `make test` | Run all 29 unit tests |
+| `make test` | Run all unit tests |
 | `make test-list` | List all test names (usable with `K=`) |
 | `make test-one K=<name>` | Run one test by name |
 | `make run` | Start the Flask app at `http://localhost:5000` |
+| `make run-skip` | Start app with OAuth disabled — no Google credentials needed (⚠ local dev only) |
 | `make setup` | Full CI pipeline: install → test → package |
 | `make reauth` | Delete `.token_cache.json` (force Google sign-in again) |
 | `make clean` | Delete `output/`, `logs/`, `dist/`, `__pycache__/` |
@@ -221,7 +269,7 @@ Go to your forked repo → **Settings → Secrets and variables → Actions → 
 Your `.env` file is missing or `APP_SECRET` is not set. Check that `.env` exists and has no `#` in front of `APP_SECRET=`.
 
 ### `EnvironmentError: GOOGLE_CLIENT_SECRET is required`
-Same as above — check `GOOGLE_CLIENT_SECRET=` in your `.env`.
+Check `GOOGLE_CLIENT_SECRET=` in your `.env`. Alternatively, if you don't have Google credentials yet, add `SKIP_OAUTH=true` to your `.env` and use `make run-skip` (see Step 4b).
 
 ### `Error 400: redirect_uri_mismatch`
 The redirect URI in Google Cloud Console does not match the app.
@@ -249,11 +297,13 @@ PORT=8080 make run
 
 ## How Secrets Work
 
-| What | Sensitive? | Where it lives |
-|------|-----------|----------------|
-| `GOOGLE_CLIENT_ID` | ❌ No — public | Committed in `app/main.py` |
-| `GOOGLE_CLIENT_SECRET` | ✅ Yes | `.env` (local) / GitHub Secret (CI) |
-| `APP_SECRET` | ✅ Yes | `.env` (local) / GitHub Secret (CI) |
+| What | Sensitive? | Where it lives | Required? |
+|------|-----------|----------------|-----------|
+| `GOOGLE_CLIENT_ID` | ❌ No — public | Committed in `app/main.py` | Always |
+| `GOOGLE_CLIENT_SECRET` | ✅ Yes | `.env` / GitHub Secret | Only when `SKIP_OAUTH` is not set |
+| `APP_SECRET` | ✅ Yes | `.env` / GitHub Secret | Always |
+| `SKIP_OAUTH` | ❌ No | `.env` / GitHub Variable | Optional — disables auth when `true` |
+| `MOCK_NAME` / `MOCK_EMAIL` / `MOCK_PICTURE` | ❌ No | `.env` / GitHub Variable | Optional — only used when `SKIP_OAUTH=true` |
 
 End users sign in with **their own** Google account — they never see your secrets.
 Only the person running the server needs `.env` configured.

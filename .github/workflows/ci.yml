@@ -6,6 +6,7 @@ on:
       - main
       - oauth
       - web
+      - skip_oauth
   pull_request:
     branches:
       - main
@@ -27,16 +28,27 @@ jobs:
           python-version: "3.12"
           cache: "pip"
 
-      # ── 3. Verify required secrets are configured ─────────────────────────
+      # ── 3. Verify required secrets ────────────────────────────────────────
+      #       APP_SECRET is always required.
+      #       GOOGLE_CLIENT_SECRET is required only when SKIP_OAUTH is not set.
       #       Fail fast before wasting time on install/test if secrets missing.
       - name: Verify required secrets
         env:
           APP_SECRET: ${{ secrets.APP_SECRET }}
           GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          SKIP_OAUTH: ${{ vars.SKIP_OAUTH }}
         run: |
           missing=()
-          [[ -z "${APP_SECRET}" ]]            && missing+=("APP_SECRET")
-          [[ -z "${GOOGLE_CLIENT_SECRET}" ]]  && missing+=("GOOGLE_CLIENT_SECRET")
+          [[ -z "${APP_SECRET}" ]] && missing+=("APP_SECRET")
+
+          # Only require GOOGLE_CLIENT_SECRET when OAuth is not skipped
+          if [[ "${SKIP_OAUTH,,}" != "true" && "${SKIP_OAUTH}" != "1" && "${SKIP_OAUTH}" != "yes" ]]; then
+            [[ -z "${GOOGLE_CLIENT_SECRET}" ]] && missing+=("GOOGLE_CLIENT_SECRET")
+          else
+            echo "ℹ SKIP_OAUTH is set — GOOGLE_CLIENT_SECRET is not required."
+            echo "⚠ WARNING: Authentication is disabled in this run."
+          fi
+
           if [[ ${#missing[@]} -gt 0 ]]; then
             echo "ERROR: Missing required GitHub secrets: ${missing[*]}"
             echo "Add them under: Settings → Secrets and variables → Actions → New repository secret"
@@ -52,6 +64,7 @@ jobs:
         env:
           APP_SECRET: ${{ secrets.APP_SECRET }}
           GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          SKIP_OAUTH: ${{ vars.SKIP_OAUTH }}
         run: bash scripts/setup.sh
 
       # ── 5. Upload artifacts ───────────────────────────────────────────────
