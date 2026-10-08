@@ -39,6 +39,7 @@ cicd_homework/
 2. Click **Create Credentials → OAuth Client ID**
 3. Application type: **Web application**
 4. Add `http://localhost:5000/callback` to **Authorized redirect URIs**
+   (if you override the `PORT` env var, use `http://localhost:<PORT>/callback` instead)
 5. Copy the **Client Secret** (the Client ID is already in `app/main.py`)
 
 ### 3. Set up environment variables
@@ -62,10 +63,12 @@ pip install -r requirements.txt
 ### 5. Run the app
 
 ```bash
-python app/main.py
+python app/main.py          # default: http://localhost:5000
+PORT=8080 python app/main.py  # custom port example
 ```
 
 Open [http://localhost:5000](http://localhost:5000) in your browser and click **Sign in with Google**.
+> If you set `PORT`, open `http://localhost:<PORT>` instead — the redirect URI updates automatically.
 
 After sign-in, your profile is shown and `output/result.txt` is written.
 
