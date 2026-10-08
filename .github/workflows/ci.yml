@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - oauth
   pull_request:
     branches:
       - main
@@ -25,15 +26,33 @@ jobs:
           python-version: "3.12"
           cache: "pip"
 
-      # ── 3. Run Bash setup script ──────────────────────────────────────────
-      #       APP_SECRET is injected from a GitHub Actions secret so it is
+      # ── 3. Verify required secrets are configured ─────────────────────────
+      - name: Verify required secrets
+        env:
+          APP_SECRET: ${{ secrets.APP_SECRET }}
+        run: |
+          missing=()
+          [[ -z "${APP_SECRET}" ]] && missing+=("APP_SECRET")
+          if [[ ${#missing[@]} -gt 0 ]]; then
+            echo "ERROR: Missing required GitHub secrets: ${missing[*]}"
+            echo "Add them under: Settings → Secrets and variables → Actions → New repository secret"
+            exit 1
+          fi
+          echo "All required secrets are present."
+
+      # ── 4. Run Bash setup script ──────────────────────────────────────────
+      #       Secrets are injected from GitHub Actions secrets so they are
       #       never printed in plain text in the workflow log.
+      #       OAuth Device Flow is automatically skipped because GitHub
+      #       Actions sets CI=true in the environment.
       - name: Run setup, test, and package
         env:
           APP_SECRET: ${{ secrets.APP_SECRET }}
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
         run: bash scripts/setup.sh
 
-      # ── 4. Upload artifacts ───────────────────────────────────────────────
+      # ── 5. Upload artifacts ───────────────────────────────────────────────
       - name: Upload app artifact
         if: always()
         uses: actions/upload-artifact@v4
@@ -50,7 +69,7 @@ jobs:
           path: logs/test.log
           if-no-files-found: warn
 
-      # ── 5. Report result ──────────────────────────────────────────────────
+      # ── 6. Report result ──────────────────────────────────────────────────
       - name: Report status
         if: always()
         run: |

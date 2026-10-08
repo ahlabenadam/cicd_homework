@@ -1,0 +1,30 @@
+# Local credentials — never commit
+.env
+.token_cache.json
+
+# Runtime output directories
+output/
+logs/
+dist/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+.eggs/
+build/
+*.so
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
