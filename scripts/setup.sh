@@ -22,12 +22,13 @@ mkdir -p "${LOG_DIR}" "${DIST_DIR}"
 
 # ── 1. Install dependencies ──────────────────────────────────────────────────
 echo "==> Installing dependencies..."
-pip install --quiet -r requirements.txt
+python3 -m pip install -q --break-system-packages -r requirements.txt 2>/dev/null || \
+python3 -m pip install -q -r requirements.txt
 
 # ── 2. Run pytest and capture log ───────────────────────────────────────────
-echo "==> Running tests (Flask test client)..."
+echo "==> Running tests..."
 set +e
-pytest tests/ -v 2>&1 | tee "${LOG_DIR}/test.log"
+python3 -m pytest tests/ -v 2>&1 | tee "${LOG_DIR}/test.log"
 TEST_EXIT=${PIPESTATUS[0]}
 set -e
 
