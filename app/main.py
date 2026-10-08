@@ -54,6 +54,8 @@ _SAFE_PICTURE_SCHEMES = ("http://", "https://", "//")
 
 
 _log = logging.getLogger(__name__)
+# Suppress Flask/werkzeug's "development server" banner — expected for local dev.
+logging.getLogger("werkzeug").setLevel(logging.ERROR)
 
 
 def create_app() -> Flask:
