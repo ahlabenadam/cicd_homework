@@ -26,7 +26,7 @@ cicd_homework/
 ├── scripts/
 │   └── setup.sh             # Bash: install → test → package artifact
 ├── tests/
-│   └── test_main.py         # 29 pytest tests (no browser needed)
+│   └── test_main.py         # pytest tests (no browser needed)
 ├── .env.example             # Template — copy this to .env and fill in values
 ├── .github/
 │   └── workflows/
@@ -49,9 +49,71 @@ cd cicd_homework
 
 ---
 
-## Step 1 — Create a Google OAuth Client
+## Step 1 — Choose Your Sign-in Mode
 
-This app signs users in with Google, so you need to register it in Google Cloud.
+There are two ways to run this app. Pick the one that fits you:
+
+| | 🚀 Simple mode (no Google needed) | 🔑 Advanced mode (real Google sign-in) |
+|---|---|---|
+| Google account setup? | ❌ Not needed | ✅ ~10 min setup |
+| `GOOGLE_CLIENT_SECRET` needed? | ❌ No | ✅ Yes |
+| Signs in with real Google? | No — uses a mock identity | Yes |
+| Good for | **Start here** — try the app, CI | Full demo, real authentication |
+
+> Continue with **Step 2A** for Simple mode (recommended), or **Step 2B** for Advanced mode.
+
+---
+
+## ── Simple Mode (recommended, no Google credentials) ──────────────────────────
+
+> ⚠ **Note:** Simple mode bypasses authentication — anyone can "sign in".
+> **Use only for local development — never on a public or production server.**
+
+## Step 2A — Create `.env` (Quick Mode)
+
+```bash
+cp .env.example .env
+```
+
+Open `.env` and set only `APP_SECRET` (you can leave `GOOGLE_CLIENT_SECRET` out):
+
+```bash
+APP_SECRET=paste-a-random-string-here
+```
+
+Generate a random value:
+```bash
+python3 -c "import secrets; print(secrets.token_hex(32))"
+```
+
+Add `SKIP_OAUTH=true` to your `.env` (disables Google sign-in):
+```bash
+SKIP_OAUTH=true
+```
+
+**Optional** — customize the mock identity shown on the profile page:
+```bash
+MOCK_NAME=Ada Lovelace
+MOCK_EMAIL=ada@example.com
+```
+
+## Step 3A — Install & Run (Quick Mode)
+
+```bash
+make run-skip
+```
+
+Open **[http://localhost:5000](http://localhost:5000)** and click **Continue without sign-in**.
+
+> Jump to **[Step 5 — Run Tests](#step-5--run-tests)** when you are ready.
+
+---
+
+## ── Advanced Mode (real Google sign-in) ───────────────────────────────────────
+
+## Step 2B — Create a Google OAuth Client
+
+You need to register this app in Google Cloud to get a Client Secret.
 You only need a **free** Google account — no credit card required.
 
 1. Go to [console.cloud.google.com](https://console.cloud.google.com)
@@ -69,24 +131,20 @@ You only need a **free** Google account — no credit card required.
    http://localhost:5000/callback
    ```
 8. Click **Create**
-9. A popup shows your credentials — click **Download JSON** or just copy the **Client Secret**
+9. A popup shows your credentials — copy the **Client Secret**
 
 > ⚠️ The **Client ID** is already baked into `app/main.py` — you only need the **Client Secret**.
 
----
-
-## Step 2 — Create Your `.env` File
-
-The `.env` file holds your private secrets. It is **never committed to git** (listed in `.gitignore`).
+## Step 3B — Create `.env` (Full Mode)
 
 ```bash
 cp .env.example .env
 ```
 
-Now open `.env` in any text editor and fill in two values:
+Open `.env` and fill in both values:
 
 ```bash
-# Paste the Client Secret from Step 1
+# Paste the Client Secret from Step 2B
 GOOGLE_CLIENT_SECRET=GOCSPX-paste-your-secret-here
 
 # Any long random string — signs your login session cookies
@@ -97,28 +155,8 @@ Generate a random `APP_SECRET`:
 ```bash
 python3 -c "import secrets; print(secrets.token_hex(32))"
 ```
-Copy the output and paste it as your `APP_SECRET`.
 
----
-
-## Step 3 — Install Dependencies
-
-Use `make` (recommended — works on Mac and Linux):
-
-```bash
-make install
-```
-
-Or without make:
-```bash
-python3 -m pip install -r requirements.txt
-```
-
-> 💡 On **macOS with Homebrew Python** you may see a "externally managed" error. `make install` handles this automatically.
-
----
-
-## Step 4 — Run the App
+## Step 4B — Install & Run (Full Mode)
 
 ```bash
 make run
@@ -129,7 +167,7 @@ Or without make:
 python3 app/main.py
 ```
 
-Open **[http://localhost:5000](http://localhost:5000)** in your browser and click **Sign in with Google**.
+Open **[http://localhost:5000](http://localhost:5000)** and click **Sign in with Google**.
 
 **Custom port** — if port 5000 is busy:
 ```bash
@@ -139,53 +177,6 @@ Then open `http://localhost:8080`. The redirect URI updates automatically — no
 
 > ⚠️ If you change `PORT`, also update the **Authorized redirect URI** in Google Cloud Console
 > to `http://localhost:<PORT>/callback`.
-
----
-
-## Step 4b — Skip OAuth (Advanced)
-
-Don't have Google credentials yet, or just want to test the app quickly?
-You can bypass Google sign-in entirely with one env var.
-
-> ⚠ **Warning:** This disables all authentication. Anyone can "sign in" with no password.
-> **Never use `SKIP_OAUTH=true` on a public server or in production.**
-
-```bash
-make run-skip
-```
-
-Or manually:
-```bash
-SKIP_OAUTH=true python3 app/main.py
-```
-
-In this mode:
-- **`GOOGLE_CLIENT_SECRET` is not required** — you can skip Step 1 and 2 entirely
-- The "Sign in with Google" button becomes "Continue without sign-in"
-- A yellow warning banner appears on the home and profile pages
-- You are signed in as a mock user — customize with env vars:
-
-```bash
-SKIP_OAUTH=true MOCK_NAME="Ada Lovelace" MOCK_EMAIL="ada@example.com" make run-skip
-```
-
-Or add to your `.env`:
-```bash
-SKIP_OAUTH=true
-MOCK_NAME=Ada Lovelace
-MOCK_EMAIL=ada@example.com
-```
-
-### Using SKIP_OAUTH in GitHub Actions CI
-
-Set `SKIP_OAUTH` as a **Repository Variable** (not a secret — it's not sensitive):
-**Settings → Secrets and variables → Actions → Variables → New repository variable**
-
-| Variable | Value |
-|----------|-------|
-| `SKIP_OAUTH` | `true` |
-
-When `SKIP_OAUTH=true` is set, CI will no longer require `GOOGLE_CLIENT_SECRET` to pass the secret verification step.
 
 ---
 
@@ -227,8 +218,8 @@ This installs deps, runs all tests (saves log to `logs/test.log`), and packages 
 | `make test` | Run all unit tests |
 | `make test-list` | List all test names (usable with `K=`) |
 | `make test-one K=<name>` | Run one test by name |
-| `make run` | Start the Flask app at `http://localhost:5000` |
-| `make run-skip` | Start app with OAuth disabled — no Google credentials needed (⚠ local dev only) |
+| `make run-skip` | Start app without OAuth — no Google credentials needed (Simple mode, ⚠ local dev only) |
+| `make run` | Start the Flask app with real Google sign-in (Advanced mode) |
 | `make setup` | Full CI pipeline: install → test → package |
 | `make reauth` | Delete `.token_cache.json` (force Google sign-in again) |
 | `make clean` | Delete `output/`, `logs/`, `dist/`, `__pycache__/` |
@@ -239,27 +230,38 @@ This installs deps, runs all tests (saves log to `logs/test.log`), and packages 
 ## GitHub Actions CI
 
 The workflow (`.github/workflows/ci.yml`) runs automatically on:
-- Every push to `main`, `oauth`, or `web` branches
+- Every push to `main`, `oauth`, `web`, or `skip_oauth` branches
 - Every pull request targeting `main`
 
 ### What CI Does
 
 1. Checks out code
 2. Sets up Python 3.12
-3. **Verifies secrets** — fails immediately if `APP_SECRET` or `GOOGLE_CLIENT_SECRET` are missing
+3. **Verifies secrets** — fails immediately if required secrets are missing
 4. Runs `scripts/setup.sh` — install, test, package
 5. Uploads `dist/app.tar.gz` and `logs/test.log` as downloadable artifacts
 
-### Add Secrets to GitHub
+### Add Secrets to GitHub (Full Mode)
 
 Go to your forked repo → **Settings → Secrets and variables → Actions → New repository secret**
 
 | Secret name | Where to get it |
 |-------------|-----------------|
-| `APP_SECRET` | Any long random string (same command as Step 2) |
-| `GOOGLE_CLIENT_SECRET` | From your Google Cloud OAuth client (Step 1) |
+| `APP_SECRET` | Any long random string |
+| `GOOGLE_CLIENT_SECRET` | From your Google Cloud OAuth client (Step 2B) |
 
 > `GOOGLE_CLIENT_ID` is **not** a secret — it is committed directly in `app/main.py`.
+
+### Using Quick Mode in CI (no Google credentials)
+
+Set `SKIP_OAUTH` as a **Repository Variable** (not a secret):
+**Settings → Secrets and variables → Actions → Variables → New repository variable**
+
+| Variable | Value |
+|----------|-------|
+| `SKIP_OAUTH` | `true` |
+
+When set, CI will not require `GOOGLE_CLIENT_SECRET`.
 
 ---
 
@@ -269,15 +271,17 @@ Go to your forked repo → **Settings → Secrets and variables → Actions → 
 Your `.env` file is missing or `APP_SECRET` is not set. Check that `.env` exists and has no `#` in front of `APP_SECRET=`.
 
 ### `EnvironmentError: GOOGLE_CLIENT_SECRET is required`
-Check `GOOGLE_CLIENT_SECRET=` in your `.env`. Alternatively, if you don't have Google credentials yet, add `SKIP_OAUTH=true` to your `.env` and use `make run-skip` (see Step 4b).
+You are running in Advanced mode but `GOOGLE_CLIENT_SECRET` is not set. Either:
+- Add `GOOGLE_CLIENT_SECRET=...` to your `.env` (see Step 3B), or
+- Switch to Simple mode: add `SKIP_OAUTH=true` to `.env` and use `make run-skip`
 
 ### `Error 400: redirect_uri_mismatch`
 The redirect URI in Google Cloud Console does not match the app.
-Make sure you added `http://localhost:5000/callback` exactly (no trailing slash) in Step 1.
+Make sure you added `http://localhost:5000/callback` exactly (no trailing slash) in Step 2B.
 
 ### `Error 400: invalid_request` or `oauth_test sent an invalid request`
 Your Google OAuth client is set to the wrong type (e.g. "TV and Limited Input").
-Go back to Step 1 and create a **Web application** client.
+Go back to Step 2B and create a **Web application** client.
 
 ### `Session expired or invalid request`
 Your browser cookies were cleared or the session timed out. Just click **Sign in with Google** again.
@@ -290,7 +294,8 @@ make reauth
 
 ### Port 5000 is already in use
 ```bash
-PORT=8080 make run
+PORT=8080 make run-skip  # Simple mode
+PORT=8080 make run       # Advanced mode
 ```
 
 ---
@@ -300,10 +305,10 @@ PORT=8080 make run
 | What | Sensitive? | Where it lives | Required? |
 |------|-----------|----------------|-----------|
 | `GOOGLE_CLIENT_ID` | ❌ No — public | Committed in `app/main.py` | Always |
-| `GOOGLE_CLIENT_SECRET` | ✅ Yes | `.env` / GitHub Secret | Only when `SKIP_OAUTH` is not set |
+| `GOOGLE_CLIENT_SECRET` | ✅ Yes | `.env` / GitHub Secret | Full mode only |
 | `APP_SECRET` | ✅ Yes | `.env` / GitHub Secret | Always |
-| `SKIP_OAUTH` | ❌ No | `.env` / GitHub Variable | Optional — disables auth when `true` |
-| `MOCK_NAME` / `MOCK_EMAIL` / `MOCK_PICTURE` | ❌ No | `.env` / GitHub Variable | Optional — only used when `SKIP_OAUTH=true` |
+| `SKIP_OAUTH` | ❌ No | `.env` / GitHub Variable | Optional — enables Simple mode |
+| `MOCK_NAME` / `MOCK_EMAIL` / `MOCK_PICTURE` | ❌ No | `.env` / GitHub Variable | Optional — Quick mode identity |
 
 End users sign in with **their own** Google account — they never see your secrets.
 Only the person running the server needs `.env` configured.
