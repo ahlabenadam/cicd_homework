@@ -158,7 +158,7 @@ def create_app() -> Flask:
 
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.WARNING)
     flask_app = create_app()
     debug = os.environ.get("DEBUG", "").lower() in ("1", "true", "yes")
-    flask_app.run(debug=debug, port=PORT)
+    print(f" * Open http://localhost:{PORT}/")
+    flask_app.run(debug=debug, port=PORT, use_reloader=False)
