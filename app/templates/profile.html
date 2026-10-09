@@ -15,16 +15,10 @@
               font-family: monospace; font-size: 0.85rem; white-space: pre; overflow-x: auto; margin-bottom: 1.5rem; }
     a.logout { color: #c00; font-size: 0.9rem; text-decoration: none; }
     a.logout:hover { text-decoration: underline; }
-    .badge  { display: inline-block; margin-bottom: 1rem; padding: 0.25rem 0.7rem;
-              background: #fff3cd; border: 1px solid #ffc107; border-radius: 12px;
-              font-size: 0.78rem; color: #856404; font-weight: 600; }
   </style>
 </head>
 <body>
   <div class="card">
-    {% if local_mode %}
-    <div class="badge">⚠ Local mode — OAuth skipped</div><br>
-    {% endif %}
     {% if picture %}
     <img src="{{ picture }}" alt="Profile picture">
     {% endif %}

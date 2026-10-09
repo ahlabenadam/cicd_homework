@@ -1,4 +1,4 @@
-.PHONY: install uninstall test test-one test-list run run-oauth setup reauth clean help
+.PHONY: install uninstall test test-one test-list run ci clean help
 
 .DEFAULT_GOAL := run
 
@@ -25,7 +25,7 @@ test: install
 test-list: install
 	@python3 -m pytest tests/ --collect-only -q 2>/dev/null | grep "::" | sed 's/.*:://'
 
-# Run a single test by name (usage: make test-one K=test_callback_passes_code_verifier)
+# Run a single test by name (usage: make test-one K=test_profile_shows_name)
 test-one: install
 	@if [ -z "$(K)" ]; then echo "ERROR: K is required. Usage: make test-one K=test_name"; exit 1; fi
 	@python3 -m pytest tests/ -v -k "$(K)"; code=$$?; \
@@ -37,25 +37,16 @@ test-one: install
 
 # ── App ───────────────────────────────────────────────────────────────────────
 
-# Start the app without Google OAuth (default — no credentials needed).
-# ⚠ Authentication is disabled — local dev only.
-# Customize the mock identity with MOCK_NAME, MOCK_EMAIL, MOCK_PICTURE env vars.
+# Start the Flask app (default).
+# Customize the identity with MOCK_NAME, MOCK_EMAIL, MOCK_PICTURE in .env.
 run: install
-	SKIP_OAUTH=true python3 app/main.py
-
-# Start the app with real Google OAuth (advanced — requires GOOGLE_CLIENT_SECRET in .env).
-run-oauth: install
 	python3 app/main.py
 
-# Full CI-equivalent: install → test → package artifact
-setup: install
+# Run the full CI pipeline locally: install → test → package artifact
+ci: install
 	bash scripts/setup.sh
 
 # ── Maintenance ───────────────────────────────────────────────────────────────
-
-# Force Google re-authentication (deletes cached token)
-reauth:
-	rm -f .token_cache.json
 
 # Remove generated directories
 clean:
@@ -67,15 +58,15 @@ help:
 	@echo ""
 	@echo "Usage: make <target>"
 	@echo ""
-	@echo "  install    Install Python dependencies (python3 -m pip install -r requirements.txt)"
+	@echo "  install    Install Python dependencies"
 	@echo "  uninstall  Uninstall all packages listed in requirements.txt"
 	@echo "  test       Run all unit tests        [depends on: install]"
 	@echo "  test-list  List all test names        [depends on: install]"
 	@echo "  test-one   Run one test by name       [depends on: install]  e.g. make test-one K=test_login"
-	@echo "  run        Start app (no OAuth, no Google credentials needed) [depends on: install]"
-	@echo "  run-oauth  Start app with real Google sign-in (advanced)      [depends on: install]"
-	@echo "  setup      Full CI pipeline           [depends on: install]"
-	@echo "  reauth     Delete .token_cache.json (force Google sign-in)"
+	@echo "  run        Start Flask app at http://localhost:5000 [depends on: install]  (default)"
+	@echo "  ci         Run full CI pipeline locally [depends on: install]"
 	@echo "  clean      Remove output/, logs/, dist/, __pycache__/"
+	@echo ""
+	@echo "  Tip: to sign in as a different user, open a private/incognito browser window."
 	@echo "  help       Show this message"
 	@echo ""

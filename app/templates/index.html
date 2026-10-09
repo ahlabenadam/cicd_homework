@@ -5,35 +5,55 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>CI/CD Homework App</title>
   <style>
-    body  { font-family: system-ui, sans-serif; max-width: 480px; margin: 80px auto; padding: 0 1rem; text-align: center; color: #222; }
-    h1    { font-size: 1.6rem; margin-bottom: 0.4rem; }
-    p     { color: #555; margin-bottom: 2rem; }
+    body  { font-family: system-ui, sans-serif; max-width: 520px; margin: 60px auto; padding: 0 1rem; color: #222; }
+    h1    { font-size: 1.6rem; margin-bottom: 0.3rem; }
+    p     { color: #555; margin-bottom: 1.5rem; }
     a.btn {
       display: inline-block; padding: 0.7rem 1.6rem; border-radius: 6px;
-      background: #4285f4; color: #fff; text-decoration: none; font-weight: 600;
-      font-size: 1rem; letter-spacing: .02em;
+      background: #555; color: #fff; text-decoration: none; font-weight: 600;
+      font-size: 1rem;
     }
-    a.btn:hover { background: #3367d6; }
-    a.btn.local { background: #555; }
-    a.btn.local:hover { background: #333; }
-    .flash  { margin-top: 1.5rem; color: #c00; font-size: 0.9rem; }
-    .notice { margin-top: 1.5rem; padding: 0.6rem 1rem; background: #fff3cd;
-              border: 1px solid #ffc107; border-radius: 6px; font-size: 0.85rem; color: #856404; }
+    a.btn:hover { background: #333; }
+    .flash { margin-top: 1.5rem; color: #c00; font-size: 0.9rem; }
+    .config { margin-top: 2rem; border: 1px solid #ddd; border-radius: 8px; padding: 1rem 1.2rem; font-size: 0.85rem; }
+    .config h2 { font-size: 0.9rem; text-transform: uppercase; letter-spacing: .06em; color: #888; margin: 0 0 0.7rem; }
+    .config table { width: 100%; border-collapse: collapse; }
+    .config td { padding: 0.25rem 0; vertical-align: top; }
+    .config td:first-child { color: #888; width: 40%; }
+    .tag { display: inline-block; padding: 0.1rem 0.45rem; border-radius: 4px; font-size: 0.78rem; font-weight: 600; }
+    .set   { background: #d4edda; color: #155724; }
+    .unset { background: #f8d7da; color: #721c24; }
   </style>
 </head>
 <body>
   <h1>CI/CD Homework App</h1>
-  {% if skip_oauth %}
-  <p>Running in <strong>local mode</strong> — Google sign-in is disabled.</p>
-  <a class="btn local" href="/login">Continue without sign-in</a>
-  <div class="notice">
-    ⚠ <strong>Local mode is active.</strong>
-    Authentication is disabled. Do not use in production.
+  <p>Click below to enter and view your profile.</p>
+  <a class="btn" href="/login">Enter app</a>
+
+  <div class="config">
+    <h2>Current configuration</h2>
+    <table>
+      <tr>
+        <td>Identity</td>
+        <td><strong>{{ name }}</strong> &lt;{{ email }}&gt;</td>
+      </tr>
+      <tr>
+        <td>APP_SECRET</td>
+        <td>
+          {% if app_secret_set %}
+          <span class="tag set">✓ set</span>
+          {% else %}
+          <span class="tag unset">✗ missing</span> — add to <code>.env</code>
+          {% endif %}
+        </td>
+      </tr>
+      <tr>
+        <td>Port</td>
+        <td>{{ port }}</td>
+      </tr>
+    </table>
   </div>
-  {% else %}
-  <p>Sign in with your Google account to view your profile.</p>
-  <a class="btn" href="/login">Sign in with Google</a>
-  {% endif %}
+
   {% for msg in get_flashed_messages() %}
   <p class="flash">{{ msg }}</p>
   {% endfor %}
