@@ -103,6 +103,11 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
+          # Safe because: (1) pull_request_target runs with base-repo secrets,
+          # (2) the ci-fork-approval environment gate requires a maintainer to
+          # review and approve before this job runs, (3) we pin to the exact
+          # commit SHA — not the branch — to prevent TOCTOU attacks.
+          allow-unsafe-pr-checkout: true
 
       # ── 2. Set up Python ─────────────────────────────────────────────────
       - name: Set up Python 3.12
