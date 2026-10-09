@@ -15,7 +15,6 @@ Required environment variables (set in .env):
 Optional — customize the identity shown on the profile page:
     MOCK_NAME    — Display name  (default: "Local User")
     MOCK_EMAIL   — Email address (default: "local@localhost")
-    MOCK_DUMMY   - Dummy MOCK environment
     MOCK_PICTURE — Avatar URL   (default: "" → no avatar shown)
 
 Optional:
@@ -100,7 +99,6 @@ def create_app() -> Flask:
             "index.html",
             name=os.environ.get("MOCK_NAME", "Local User"),
             email=os.environ.get("MOCK_EMAIL", "local@localhost"),
-            dummy=os.environ.get("MOCK_DUMMY", "mock dummy"),
             app_secret_set=bool(app_secret),
             port=PORT,
         )
