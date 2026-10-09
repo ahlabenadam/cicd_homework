@@ -5,6 +5,9 @@ It demonstrates a full CI/CD pipeline with GitHub Actions, secret handling, and 
 
 ---
 
+
+## **Must be rejected**
+
 ## What This App Does
 
 1. You open it in your browser → you see an **Enter app** button
