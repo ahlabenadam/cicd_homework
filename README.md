@@ -131,7 +131,14 @@ Installs deps, runs all tests (log → `logs/test.log`), packages `app/` into `d
 
 ## GitHub Actions CI
 
-The workflow (`.github/workflows/ci.yml`) runs automatically on:
+Two workflows live in `.github/workflows/`:
+
+| Workflow | File | Trigger |
+|----------|------|---------|
+| **CI** | `ci.yml` | Push to `main`/`web`/`skip_oauth`; every PR to `main` |
+| **Auto-merge** | `auto-merge.yml` | When CI completes on a PR |
+
+The **CI** workflow runs automatically on:
 - Every push to `main`, `web`, or `skip_oauth` branches
 - Every pull request targeting `main`
 
@@ -150,6 +157,59 @@ Go to **Settings → Secrets and variables → Actions → New repository secret
 | Secret | Description |
 |--------|-------------|
 | `APP_SECRET` | Any long random string — signs session cookies |
+
+---
+
+## Auto-merge Workflow
+
+The second workflow (`.github/workflows/auto-merge.yml`) watches every CI run on a pull request
+and **automatically merges or rejects the PR** — no human click required.
+
+### How it works
+
+```
+Developer pushes branch
+       │
+       ▼
+CI workflow runs  ──────────────────────────────┐
+       │                                        │
+  ✅ Passes                                ❌ Fails
+       │                                        │
+       ▼                                        ▼
+Auto-merge triggers                    Auto-reject triggers
+  • Squash-merges PR into main           • Adds label "ci-failed"
+  • Deletes the feature branch           • Posts comment with link to failed run
+  • Posts "merged" comment               • PR stays open — developer fixes & re-pushes
+```
+
+### One-time repo setup (required)
+
+Auto-merge only works reliably when GitHub enforces that CI must pass before merging.
+Without branch protection the workflow still runs, but anyone could click "Merge" manually
+before CI finishes.
+
+**Recommended branch protection rule for `main`:**
+
+1. Go to **Settings → Branches → Add branch ruleset** (or "Add rule" on older UI).
+2. Set **Branch name pattern** to `main`.
+3. Enable **"Require status checks to pass before merging"**.
+4. Add `CI` (the workflow name) to the required status checks.
+5. Optionally enable **"Require branches to be up to date before merging"**.
+6. Save.
+
+That's it. With this in place the sequence is fully automatic:
+
+| Scenario | Outcome |
+|----------|---------|
+| PR CI passes | Squash-merged into `main`, branch deleted, success comment posted |
+| PR CI fails  | `ci-failed` label added, failure comment with link to logs posted, PR stays open |
+
+### Permissions used
+
+The workflow runs with the built-in `GITHUB_TOKEN` — no new secrets needed.
+It requests:
+- `contents: write` — to push the merge commit
+- `pull-requests: write` — to comment and add labels
 
 ---
 
