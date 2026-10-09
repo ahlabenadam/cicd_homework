@@ -41,7 +41,7 @@ echo "==> All tests passed."
 
 # ── 3. Package the app ──────────────────────────────────────────────────────
 echo "==> Packaging artifact..."
-tar -czf "${DIST_DIR}/app.tar.gz" app/
-echo "==> Artifact written to ${DIST_DIR}/app.tar.gz"
+tar -czf "${DIST_DIR}/app.tar.gz" app/ requirements.txt
+echo "==> Artifact written to ${DIST_DIR}/app.tar.gz (includes app/ and requirements.txt)"
 
 echo "==> Setup complete."
