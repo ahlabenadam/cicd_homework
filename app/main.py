@@ -86,13 +86,13 @@ def create_app() -> Flask:
             "\n  CI         : add APP_SECRET under Settings → Secrets and variables → Actions."
         )
 
-    app = Flask(__name__, template_folder="templates")
+    apps = Flask(__name__, template_folder="templates")
     app.secret_key = app_secret  # signs session cookies — keep APP_SECRET private!
 
     # ── Routes ────────────────────────────────────────────────────────────────
 
     @app.route("/")
-    def index():
+    def indexc():
         if "email" in session:
             return redirect(url_for("profile"))
         return render_template(
