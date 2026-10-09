@@ -178,8 +178,9 @@ CI workflow runs  ────────────────────�
        ▼                                        ▼
 Auto-merge triggers                    Auto-reject triggers
   • Squash-merges PR into main           • Adds label "ci-failed"
-  • Deletes the feature branch           • Posts comment with link to failed run
-  • Posts "merged" comment               • PR stays open — developer fixes & re-pushes
+  • Deletes the feature branch           • Posts comment with link to failed job logs
+  • Posts comment with CI log link       • PR stays open — developer fixes & re-pushes
+    and app.tgz artifact download
 ```
 
 ### One-time repo setup (required)
@@ -201,8 +202,8 @@ That's it. With this in place the sequence is fully automatic:
 
 | Scenario | Outcome |
 |----------|---------|
-| PR CI passes | Squash-merged into `main`, branch deleted, success comment posted |
-| PR CI fails  | `ci-failed` label added, failure comment with link to logs posted, PR stays open |
+| PR CI passes | Squash-merged into `main`, branch deleted; comment posted with CI log link and `app.tgz` download |
+| PR CI fails  | `ci-failed` label added; comment posted with direct link to failed job logs; PR stays open |
 
 ### Permissions used
 
