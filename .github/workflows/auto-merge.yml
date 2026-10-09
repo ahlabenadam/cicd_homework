@@ -77,11 +77,13 @@ jobs:
           REPO: ${{ github.repository }}
           PR_NUMBER: ${{ steps.find-pr.outputs.pr_number }}
           ARTIFACT_URL: ${{ steps.artifact.outputs.url }}
+          RUN_URL: ${{ github.event.workflow_run.html_url }}
         run: |
           gh pr comment "$PR_NUMBER" \
             --repo "$REPO" \
             --body "✅ **CI passed** — this PR has been squash-merged into \`main\` automatically.
 
+          **CI logs:** $RUN_URL
           **Download artifact:** [app.tgz]($ARTIFACT_URL)
           *(Requires GitHub login to download)*"
 
