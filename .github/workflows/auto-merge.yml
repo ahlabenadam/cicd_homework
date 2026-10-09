@@ -59,17 +59,31 @@ jobs:
             --subject "Auto-merge PR #$PR_NUMBER (CI passed)" \
             --body "Automatically merged after all CI checks passed."
 
+      - name: Get artifact page URL
+        id: artifact
+        if: steps.find-pr.outputs.pr_number != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
+          REPO: ${{ github.repository }}
+        run: |
+          PAGE_URL="https://github.com/$REPO/actions/runs/$RUN_ID#artifacts"
+          echo "url=$PAGE_URL" >> "$GITHUB_OUTPUT"
+
       - name: Comment — merged successfully
         if: steps.find-pr.outputs.pr_number != ''
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
           PR_NUMBER: ${{ steps.find-pr.outputs.pr_number }}
-          RUN_URL: ${{ github.event.workflow_run.html_url }}
+          ARTIFACT_URL: ${{ steps.artifact.outputs.url }}
         run: |
           gh pr comment "$PR_NUMBER" \
             --repo "$REPO" \
-            --body "✅ **CI passed** — this PR has been squash-merged into \`main\` automatically. ([CI run]($RUN_URL))"
+            --body "✅ **CI passed** — this PR has been squash-merged into \`main\` automatically.
+
+          **Download artifact:** [app.tgz]($ARTIFACT_URL)
+          *(Requires GitHub login to download)*"
 
   # ── Reject ────────────────────────────────────────────────────────────────
   # Runs only when CI failed AND the triggering event was a pull_request to main.
@@ -126,21 +140,32 @@ jobs:
             --repo "$REPO" \
             --add-label "ci-failed"
 
+      - name: Get failed job URL
+        id: failed-job
+        if: steps.find-pr.outputs.pr_number != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
+          REPO: ${{ github.repository }}
+        run: |
+          JOB_URL=$(gh api /repos/$REPO/actions/runs/$RUN_ID/jobs \
+            --jq '[.jobs[] | select(.conclusion == "failure")] | first | .html_url')
+          echo "url=$JOB_URL" >> "$GITHUB_OUTPUT"
+
       - name: Comment — CI failed
         if: steps.find-pr.outputs.pr_number != ''
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
           PR_NUMBER: ${{ steps.find-pr.outputs.pr_number }}
-          RUN_URL: ${{ github.event.workflow_run.html_url }}
+          JOB_URL: ${{ steps.failed-job.outputs.url }}
         run: |
           gh pr comment "$PR_NUMBER" \
             --repo "$REPO" \
             --body "❌ **CI failed** — this PR will not be merged until all checks pass.
 
-          **What to do:**
-          1. Check the [failed CI run]($RUN_URL) for details.
-          2. Fix the issues on your branch.
-          3. Push the fix — CI will run again automatically.
+          **Failed job logs:** $JOB_URL
+
+          Fix the issues on your branch and push again — CI will re-run automatically.
 
           The \`ci-failed\` label will be removed automatically when CI passes and the PR is merged."
