@@ -39,7 +39,7 @@ jobs:
             --jq ".[] | select(.headRefOid == \"$HEAD_SHA\") | .number")
 
           if [[ -z "$PR_NUMBER" ]]; then
-            echo "No open PR found for commit $HEAD_SHA — skipping."
+            echo "No open PR found for commit $HEAD_SHA — already merged or closed. Skipping."
             echo "pr_number=" >> "$GITHUB_OUTPUT"
           else
             echo "pr_number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
@@ -113,7 +113,7 @@ jobs:
             --jq ".[] | select(.headRefOid == \"$HEAD_SHA\") | .number")
 
           if [[ -z "$PR_NUMBER" ]]; then
-            echo "No open PR found for commit $HEAD_SHA — skipping."
+            echo "No open PR found for commit $HEAD_SHA — already merged or closed. Skipping."
             echo "pr_number=" >> "$GITHUB_OUTPUT"
           else
             echo "pr_number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
