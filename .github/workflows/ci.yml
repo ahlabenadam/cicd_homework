@@ -7,26 +7,37 @@ on:
   pull_request:
     branches:
       - main
+  # pull_request_target fires with access to base-repo secrets even for forks.
+  # The fork job is gated by the 'ci-fork-approval' environment (required reviewers).
+  pull_request_target:
+    branches:
+      - main
 
 jobs:
+
+  # ── Same-repo PRs and pushes to main ─────────────────────────────────────
+  # Secrets are available; runs immediately without any approval gate.
   build-and-test:
     name: Build, Test & Package
     runs-on: ubuntu-latest
+    if: >
+      github.event_name == 'push' ||
+      (github.event_name == 'pull_request' &&
+       github.event.pull_request.head.repo.full_name == github.repository)
 
     steps:
-      # ── 1. Checkout ────────────────────────────────────────────────────────
+      # ── 1. Checkout ──────────────────────────────────────────────────────
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # ── 2. Set up Python ──────────────────────────────────────────────────
+      # ── 2. Set up Python ─────────────────────────────────────────────────
       - name: Set up Python 3.12
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
           cache: "pip"
 
-      # ── 3. Verify required secrets ────────────────────────────────────────
-      #       Fail fast before wasting time on install/test if secrets missing.
+      # ── 3. Verify required secrets ───────────────────────────────────────
       - name: Verify required secrets
         env:
           APP_SECRET: ${{ secrets.APP_SECRET }}
@@ -38,15 +49,13 @@ jobs:
           fi
           echo "All required secrets are present."
 
-      # ── 4. Run Bash setup script ──────────────────────────────────────────
-      #       Tests use Flask test client — no browser or Google account needed.
-      #       APP_SECRET is injected from the vault.
+      # ── 4. Run setup script ──────────────────────────────────────────────
       - name: Run setup, test, and package
         env:
           APP_SECRET: ${{ secrets.APP_SECRET }}
         run: bash scripts/setup.sh
 
-      # ── 5. Upload artifacts ───────────────────────────────────────────────
+      # ── 5. Upload artifacts ──────────────────────────────────────────────
       - name: Upload app artifact
         if: always()
         uses: actions/upload-artifact@v4
@@ -63,7 +72,80 @@ jobs:
           path: logs/test.log
           if-no-files-found: warn
 
-      # ── 6. Report result ──────────────────────────────────────────────────
+      # ── 6. Report result ─────────────────────────────────────────────────
+      - name: Report status
+        if: always()
+        run: |
+          if [[ "${{ job.status }}" == "success" ]]; then
+            echo "✅ CI passed — all steps completed successfully."
+          else
+            echo "❌ CI failed — review the logs and uploaded artifacts above."
+            exit 1
+          fi
+
+  # ── Fork PRs — gated by environment approval ──────────────────────────────
+  # A maintainer must approve in GitHub UI before this job runs.
+  # This gives the maintainer a chance to review the fork's code before
+  # exposing repository secrets to it.
+  build-and-test-fork:
+    name: Build, Test & Package
+    runs-on: ubuntu-latest
+    if: >
+      github.event_name == 'pull_request_target' &&
+      github.event.pull_request.head.repo.full_name != github.repository
+    environment: ci-fork-approval
+
+    steps:
+      # ── 1. Checkout the fork's code (not the base branch) ────────────────
+      #       IMPORTANT: must pin to the contributor's exact commit SHA,
+      #       not to the branch head, to prevent TOCTOU attacks.
+      - name: Checkout fork code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      # ── 2. Set up Python ─────────────────────────────────────────────────
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      # ── 3. Verify required secrets ───────────────────────────────────────
+      - name: Verify required secrets
+        env:
+          APP_SECRET: ${{ secrets.APP_SECRET }}
+        run: |
+          if [[ -z "${APP_SECRET}" ]]; then
+            echo "ERROR: Missing required GitHub secret: APP_SECRET"
+            exit 1
+          fi
+          echo "All required secrets are present."
+
+      # ── 4. Run setup script ──────────────────────────────────────────────
+      - name: Run setup, test, and package
+        env:
+          APP_SECRET: ${{ secrets.APP_SECRET }}
+        run: bash scripts/setup.sh
+
+      # ── 5. Upload artifacts ──────────────────────────────────────────────
+      - name: Upload app artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: app
+          path: dist/app.tar.gz
+          if-no-files-found: warn
+
+      - name: Upload test log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-log
+          path: logs/test.log
+          if-no-files-found: warn
+
+      # ── 6. Report result ─────────────────────────────────────────────────
       - name: Report status
         if: always()
         run: |

@@ -135,12 +135,13 @@ Two workflows live in `.github/workflows/`:
 
 | Workflow | File | Trigger |
 |----------|------|---------|
-| **CI** | `ci.yml` | Push to `main`/`web`/`skip_oauth`; every PR to `main` |
+| **CI** | `ci.yml` | Push to `main`; every PR to `main` (same-repo and forks) |
 | **Auto-merge** | `auto-merge.yml` | When CI completes on a PR |
 
 The **CI** workflow runs automatically on:
-- Every push to `main`, `web`, or `skip_oauth` branches
-- Every pull request targeting `main`
+- Every push to `main`
+- Every pull request targeting `main` from the same repository (immediately, with secrets)
+- Every pull request targeting `main` from a **fork** — see [Fork PRs](#fork-prs--external-contributors) below
 
 ### What CI Does
 
@@ -157,6 +158,26 @@ Go to **Settings → Secrets and variables → Actions → New repository secret
 | Secret | Description |
 |--------|-------------|
 | `APP_SECRET` | Any long random string — signs session cookies |
+
+### Fork PRs — External Contributors
+
+When a pull request comes from a **fork** (an external contributor's copy of the repo),
+GitHub does not expose repository secrets to the workflow for security reasons.
+
+To handle this safely, the CI workflow uses a separate job (`build-and-test-fork`) that:
+1. Waits for a **maintainer to approve** in the GitHub UI before running
+2. Runs with the real `APP_SECRET` from the repository secrets (after approval)
+3. Triggers auto-merge on success, just like same-repo PRs
+
+**One-time setup required** — Create the approval environment:
+1. Go to **Settings → Environments → New environment**
+2. Name it exactly: `ci-fork-approval`
+3. Enable **Required reviewers** and add yourself (or your team)
+4. Save
+
+When a fork PR is opened, GitHub will email you:
+*"Deployment to ci-fork-approval is waiting for your review"*.
+Review the contributor's diff, then click **Approve and deploy** if it looks safe.
 
 ---
 
